@@ -1,0 +1,8 @@
+
+* TODO Setup org agenda
+DEADLINE: <2022-07-27 Wed>
+* TODO setup google calendar integration
+* TODO setup a dictionary lookup
+* TODO setup a google or other web lookup
+* TODO configure shell to pop up as bottom window
+* TODO  [[https://github.com/chenyanming/spacemacs_module_for_doom][spacemacs keybindings for doom]]

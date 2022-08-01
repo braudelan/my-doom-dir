@@ -1,0 +1,260 @@
+#+TITLE: My literate doom config
+
+* UI
+** Genreral setup
+#+begin_src emacs-lisp
+;; start the initial frame maximized
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+;; global dooms' wrap-mode
+;;  wrap lines with language awareness
+(+global-word-wrap-mode t)
+#+end_src
+
+#+RESULTS:
+: t
+
+** Treemacs
+#+begin_src emacs-lisp
+(after! treeamcs
+  (setq treemacs-text-scale 0.5))
+#+end_src
+
+#+RESULTS:
+
+** Theme and font
+#+begin_src emacs-lisp
+(setq doom-theme 'tsdh-light
+      doom-font (font-spec :family "Source Code Pro" :size 20))
+#+end_src
+
+** COMMENT Modeline
+This seems to introduce a bug.
+#+begin_src emacs-lisp
+;; set the color of text
+(setq doom-modeline-height 15)
+;; (custom-set-faces!
+  ;; '(doom-modeline-buffer-modified :foreground "blue" :weight))
+#+end_src
+
+#+RESULTS:
+: 15
+
+* Key bindings
+
+** General
+#+begin_src emacs-lisp
+;; change doom leader keys
+(setq doom-leader-alt-key "M-m"
+      doom-localleader-alt-key "M-m m")
+
+;; org
+;;  new heading
+(map! :map org-mode-map
+      :g "C-<return>" 'org-insert-heading)
+
+;; treemacs
+;;  focus treeamcs side pane
+(map! :map global-map
+      :g "C-§" 'treemacs-select-window
+      :g "C-±" '+treemacs/toggle)
+
+;; powerthesaures
+(map! :map org-mode-map
+      :g "M-p" 'powerthesaurus-lookup-word-at-point)
+#+end_src
+
+#+RESULTS:
+
+** window management
+#+begin_src emacs-lisp
+(map! :map global-map
+      :prefix "C-x w"
+      :g "d" 'delete-window
+      :g "w" 'next-window-any-frame
+      :g "m" 'doom/window-maximize-buffer
+      :g "\\" 'doom/window-maximize-vertically
+      :g "]" 'doom/window-maximize-horizontally
+      :g "v" 'split-window-below
+      :g "h" 'split-window-horizontally
+      :g "r" 'rotate-layout
+      :g "s" 'rotate-window)
+
+(map! :map global-map
+      :g "C-s-<left>" 'shrink-window-horizontally
+      :g "C-s-<right>" 'enlarge-window-horizontally
+      :g "C-s-<down>" 'shrink-window
+      :g "C-s-<up>" 'enlarge-window)
+
+(map! :map global-map
+      :g "M-1" 'winum-select-window-1
+      :g "M-2" 'winum-select-window-2
+      :g "M-3" 'winum-select-window-3
+      :g "M-4" 'winum-select-window-4)
+#+end_src
+
+#+RESULTS:
+
+** COMMENT Programing language editing
+#+begin_src emacs-lisp
+(map!
+      :map python-mode-map
+      :g "M-=" '+fold/open
+      :g "M--" '+fold/close
+      :g "M-S-=" '+fold/open-all
+      :g "M-S--" '+fold/close-all)
+#+end_src
+
+#+RESULTS:
+
+** COMMENT Spacemacs like keybindings
+See https://github.com/chenyanming/spacemacs_module_for_doom
+#+begin_src emacs-lisp
+(remove-hook 'org-load-hook #'+org-init-keybinds-h)
+#+end_src
+
+* Org-mode setup
+org-mode setup
+#+begin_src emacs-lisp
+;; org bullets
+;; (use-package org-bullets
+;;   :config
+;;   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
+
+;;      hide emphasis markers
+(setq org-hide-emphasis-markers t)
+
+;;      org babel languages
+;; (org-babel-do-load-languages
+;;         'org-babel-load-languages
+;;         '((emacs-lisp . nil)
+;;           (jupyter . t))
+;;         )
+;; (after! org-src
+;;   (dolist (lang '(python julia R))
+;;     (cl-pushnew (cons (format "jupyter-%s" lang) lang)
+;;                 org-src-lang-modes :key #'car)))
+
+;; ;; export org to ipynb
+(use-package! ox-ipynb
+  :load-path "~/.doom.d/private/ox-ipynb/"
+  )
+
+;; capture templates
+;; (add-to-list 'org-capture-templates
+;;              '("t" "Personal todo" entry
+;;               (file+headline +org-capture-todo-file "Inbox")
+;;               "* TODO %?\n%i\n" :prepend t) )
+#+end_src
+s
+* MAC OS compatability
+#+begin_src emacs-lisp
+(cond (IS-MAC
+       (setq
+        mac-command-modifier 'meta
+             mac-option-modifier 'super
+             ;; mac-right-option-modifier 'alt
+             mac-pass-control-to-system nil)))
+#+end_src
+
+* COMMENT Agenda
+
+** General setup
+ #+begin_src emacs-lisp
+(defun my/org-projectile-goto-project-file ()
+  "Open the TODO.org file for the current project."
+  (interactive)
+  (org-projectile-goto-location-for-project (projectile-project-name)))
+
+(defun my/org-projectile-todo-files ()
+  "Fetch a list of org TODO files for projects that have a todo file."
+  (seq-filter #'file-exists-p (org-projectile-todo-files)))
+
+;; Add org-projectile files to org.
+(setq org-agenda-files
+      (append org-agenda-files (org-projectile-todo-files)))
+
+;; Show the daily agenda by default.
+(setq org-agenda-span 'day)
+
+;; Hide tasks that are scheduled in the future.
+(setq org-agenda-todo-ignore-scheduled 'future)
+
+;; Use "second" instead of "day" for time comparison.
+;; It hides tasks with a scheduled time like "<2020-11-15 Sun 11:30>"
+(setq org-agenda-todo-ignore-time-comparison-use-seconds t)
+
+;; Hide the deadline prewarning prior to scheduled date.
+(setq org-agenda-skip-deadline-prewarning-if-scheduled 'pre-scheduled)
+
+;; make =todo-tags= search honor ~org-agenda-todo-ignore-scheduled~
+(setq org-agenda-tags-todo-honor-ignore-options t)
+
+;; show agenda on entire window
+(setq org-agenda-window-setup 'only-window)
+ #+end_src
+
+ #+RESULTS:
+ : only-window
+* COMMENT Projects
+#+begin_src emacs-lisp
+(org-projectile-per-project)
+#+end_src
+
+#+RESULTS:
+: #s(org-projectile-per-project-strategy)
+
+* COMMENT Specific modes
+** Clojure mode
+This needs to be loaded somewhere else. Currently ~display-buffer-alist~ is *unchanged* upon restart (works when manually evaluating source block).
+#+begin_src emacs-lisp :results silent
+(add-to-list 'display-buffer-alist
+            '("^\\*cider-repl"
+              (+popup-buffer)
+              (actions)
+              (side . bottom)
+              (size)
+              (window-width . 0.35)
+              (window-height . 0.5)
+              (slot)
+              (vslot)
+              (window-parameters
+               (ttl)
+               (quit)
+               (select . ignore)
+               (modeline)
+               (autosave)
+
+               (transient . t)
+               (no-other-window . t))))
+#+end_src
+
+
+
+
+
+
+* COMMENT  Snippets
+#+begin_src emacs-lisp
+     variable font size for header levels
+(let* ((variable-tuple
+          (cond ((x-list-fonts "ETBembo")         '(:font "ETBembo"))
+                ((x-list-fonts "Source Sans Pro") '(:font "Source Sans Pro"))
+                ((x-list-fonts "Lucida Grande")   '(:font "Lucida Grande"))
+                ((x-list-fonts "Verdana")         '(:font "Verdana"))
+                ((x-family-fonts "Sans Serif")    '(:family "Sans Serif"))
+                (nil (warn "Cannot find a Sans Serif Font.  Install Source Sans Pro."))))
+         (base-font-color     (face-foreground 'default nil 'default))
+         (headline           `(:inherit default :weight bold :foreground ,base-font-color)))
+
+    (custom-theme-set-faces
+     'user
+     `(org-level-8 ((t (,@headline ,@variable-tuple))))
+     `(org-level-7 ((t (,@headline ,@variable-tuple))))
+     `(org-level-6 ((t (,@headline ,@variable-tuple))))
+     `(org-level-5 ((t (,@headline ,@variable-tuple))))
+     `(org-level-4 ((t (,@headline ,@variable-tuple :height 1))))
+     `(org-level-3 ((t (,@headline ,@variable-tuple :height 1.1))))
+     `(org-level-2 ((t (,@headline ,@variable-tuple :height 1.25))))
+     `(org-level-1 ((t (,@headline ,@variable-tuple :height 1.5))))
+     `(org-document-title ((t (,@headline ,@variable-tuple :height 2.0 :underline nil))))))
+#+end_src
